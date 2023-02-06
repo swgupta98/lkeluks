@@ -26,6 +26,8 @@ spec:
           - -c
           - |
             export DEBIAN_FRONTEND=noninteractive
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+            apt-get update
             apt update -yq
             apt install -yq joe htop
             /usr/bin/unattended-upgrade -v
