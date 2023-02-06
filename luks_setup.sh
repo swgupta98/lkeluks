@@ -102,7 +102,7 @@ secure	UUID=`lsblk --nodeps --noheadings -o UUID /dev/sdb3`	none
 EOF
 update-grub
 grub-install /dev/sdb
-echo $LUKS_KEY | clevis luks bind -y -d /dev/sdb3 tang '{"url": "http://50.116.0.10"}' -k -
+echo $LUKS_KEY | clevis luks bind -y -d /dev/sdb3 tang '{"url": "http://10.128.43.35"}' -k -
 mkdir /var/tmp
 update-initramfs -u -k 'all'
 EOFF
