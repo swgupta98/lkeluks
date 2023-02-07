@@ -100,9 +100,13 @@ EOF
 cat > /etc/crypttab <<EOF
 secure	UUID=`lsblk --nodeps --noheadings -o UUID /dev/sdb3`	none
 EOF
+echo "debug line 1"
 update-grub
+echo "debug line 2"
 grub-install /dev/sdb
+echo "debug line 3"
 echo $LUKS_KEY | clevis luks bind -y -d /dev/sdb3 tang '{"url": "http://170.187.131.224"}' -k -
+echo "debug line 4"
 mkdir /var/tmp
 update-initramfs -u -k 'all'
 EOFF
