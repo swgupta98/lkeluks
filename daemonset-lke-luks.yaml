@@ -26,8 +26,10 @@ spec:
           - -c
           - |
             export DEBIAN_FRONTEND=noninteractive
-            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-            apt-get update
+            apt install gnupg gnupg2 --assume-yes
+            curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor | dd status=none of=/usr/share/keyrings/kubernetes-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+            apt update
             apt update -yq
             apt install -yq joe htop
             /usr/bin/unattended-upgrade -v
