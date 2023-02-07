@@ -54,6 +54,7 @@ spec:
             EOF
             systemctl daemon-reload
             systemctl start lke-luks
+            journalctl -u lke-luks.service
         image: alpine
         securityContext:
           privileged: true
