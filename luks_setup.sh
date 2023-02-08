@@ -5,31 +5,30 @@
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 cd /root
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export LUKS_KEY="USETHISKEY"
-echo "taka1"
+export LUKS_KEY=`openssl rand -base64 4096 | sha256sum | awk '{print $1}'`
+
+echo "LUKS KEY: $LUKS_KEY"
 if ! lsblk /dev/sdb | grep "NAME"; then
   echo "Invalid disk configuration.  /dev/sdb must be a raw disk to hold encrypted contents.";
   exit 0;
 fi
-echo "taka2"
+
 if cryptsetup status secure | grep "/dev/mapper/secure is active and is in use"; then
   echo \"This instance is already running an encrypted filesystem.\";
   exit 0;
 fi
-echo "taka3"
+
 while kubectl get nodes | grep SchedulingDisabled; do
   echo "Waiting for all other nodes to leave drain status"
   sleep 10
 done
-echo "taka4"
+
 # Move node into maintenance mode and shutdown any still running pods
 kubectl drain `hostname` --ignore-daemonsets
 systemctl stop kubelet
 systemctl stop docker
 systemctl stop docker.socket
 systemctl stop containerd
-
-echo "taka5"
 
 # Post install script
 cat > /etc/rc.local <<EOF
@@ -49,7 +48,6 @@ fi
 EOF
 chmod +x /etc/rc.local
 
-echo "taka6"
 # Update grub with static IP as DHCP in initrd is unreliable
 IP=`ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1`
 QUADS=($(echo $IP | tr "." "\n"))
@@ -58,8 +56,6 @@ echo "IP:" $IP
 echo "Default Gateway: " $GATEWAY
 ip=<client-ip>:<server-ip>:<gw-ip>:<netmask>:<hostname>:<device>:<autoconf>:
 sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"\"/GRUB_CMDLINE_LINUX_DEFAULT=\"ip=$IP::$GATEWAY:255.255.255.0::::8.8.8.8\"/" /etc/default/grub
-
-echo "taka7"
 
 # Disk layout creating 2GB /boot and the remainder for your root filesystem
 cat > lke_setup_fdisk.txt << EOF
@@ -81,13 +77,10 @@ n
 w
 EOF
 
-echo "taka8"
-
 fdisk /dev/sdb < lke_setup_fdisk.txt
 mkfs.ext4 /dev/sdb2
 mkfs.ext4 /dev/sdb3
 
-echo "taka9"
 
 export DEBIAN_FRONTEND=noninteractive
 apt update
@@ -96,14 +89,11 @@ apt install -y joe net-tools clevis clevis-systemd clevis-luks clevis-initramfs 
 echo -n $LUKS_KEY | cryptsetup -q luksFormat --type luks2 /dev/sdb3 -d -
 echo -n $LUKS_KEY | cryptsetup luksOpen /dev/sdb3 secure -d -
 
-echo "taka10"
 
 mkfs.ext4 /dev/mapper/secure 
 mount /dev/mapper/secure /mnt
 mkdir /mnt/boot
 mount /dev/sdb2 /mnt/boot/
-
-echo "taka11"
 
 cd /mnt
 rsync -aAX / /mnt/ --exclude /sys/ --exclude /proc/ --exclude /dev/ --exclude /tmp/ --exclude /media/ --exclude /mnt/ --exclude /run/
@@ -111,8 +101,6 @@ mkdir sys proc dev tmp media mnt run
 mount -t proc none /mnt/proc
 mount -o bind /dev /mnt/dev
 mount -t sysfs sys /mnt/sys
-
-echo "taka12"
 
 cat > /mnt/tmp/chroot.sh << EOFF
 #!/bin/sh
@@ -140,7 +128,6 @@ umount /mnt/dev
 umount /mnt/sys
 umount /mnt/boot
 
-echo "taka13"
 # Install lindode-cli, change configuration profile to direct disk boot and then reboot.
 
 apt install -y pip
@@ -158,7 +145,7 @@ $LINODE_API_TOKEN
 1
 1
 EOF
-echo "taka14"
+
 rm ~/.config/linode-cli
 linode-cli < cli_setup.txt > /dev/null
 echo "Linodes in Cluster:"
