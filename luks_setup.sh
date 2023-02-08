@@ -6,8 +6,8 @@ export KUBECONFIG=/etc/kubernetes/kubelet.conf
 cd /root
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 # export LUKS_KEY=`openssl rand -base64 4096 | sha256sum | awk '{print $1}'`
-export LUKS_KEY=/etc/cryptsetup-keys.d/secure.key
-echo "LUKS_KEY: " $LUKS_KEY 
+export LUKS_KEY="changeit"
+
 if ! lsblk /dev/sdb | grep "NAME"; then
   echo "Invalid disk configuration.  /dev/sdb must be a raw disk to hold encrypted contents.";
   exit 0;
