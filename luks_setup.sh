@@ -5,7 +5,7 @@
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 cd /root
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export LUKS_KEY=`openssl rand -base64 4096 | sha256sum | awk '{print $1}'`
+export LUKS_KEY="USETHISKEY"
 echo "taka1"
 if ! lsblk /dev/sdb | grep "NAME"; then
   echo "Invalid disk configuration.  /dev/sdb must be a raw disk to hold encrypted contents.";
@@ -129,8 +129,6 @@ update-grub
 echo "debug line 2"
 grub-install /dev/sdb
 echo "debug line 3"
-echo $LUKS_KEY | clevis luks bind -y -d /dev/sdb3 tang '{"url": "http://170.187.131.224"}' -k -
-echo "debug line 4"
 mkdir /var/tmp
 update-initramfs -u -k 'all'
 EOFF
