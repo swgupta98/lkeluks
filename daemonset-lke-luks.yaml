@@ -55,9 +55,16 @@ spec:
             systemctl start lke-luks
             journalctl -u lke-luks.service -b
         image: alpine
+        volumeMounts:
+        - name: rootfs-luks-encryption-key
+          mountPath: /etc/cryptsetup-keys.d/
         securityContext:
           privileged: true
       hostPID: true
+      volumes:
+      - name: rootfs-luks-encryption-key
+        secret:
+          secretName: rootfs-encryption-key
       containers:
       - name: wait
         image: k8s.gcr.io/pause:3.1
