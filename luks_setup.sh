@@ -5,8 +5,9 @@
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 cd /root
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-# export LUKS_KEY=`openssl rand -base64 4096 | sha256sum | awk '{print $1}'`
-export LUKS_KEY="changeit"
+
+export LUKS_KEY=`cat /boot/keyfile`
+chmod 0400 /boot/keyfile
 
 if ! lsblk /dev/sdb | grep "NAME"; then
   echo "Invalid disk configuration.  /dev/sdb must be a raw disk to hold encrypted contents.";
@@ -110,7 +111,7 @@ cat > /etc/fstab <<EOF
 UUID=`lsblk --nodeps --noheadings -o UUID /dev/sdb2`	/boot	ext4	defaults 0 0
 EOF
 cat > /etc/crypttab <<EOF
-secure	UUID=`lsblk --nodeps --noheadings -o UUID /dev/sdb3`	none
+secure	UUID=`lsblk --nodeps --noheadings -o UUID /dev/sdb3` /dev/disk/by-uuid/`lsblk --nodeps --noheadings -o UUID /dev/sdb2`:/keyfile luks,keyscript=/lib/cryptsetup/scripts/passdev
 EOF
 update-grub
 grub-install /dev/sdb
