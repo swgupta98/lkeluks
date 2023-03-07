@@ -86,7 +86,7 @@ mkfs.ext4 /dev/sdb3
 export DEBIAN_FRONTEND=noninteractive
 apt update
 apt-get upgrade -yq
-apt install -y joe net-tools clevis clevis-systemd clevis-luks clevis-initramfs cryptsetup-initramfs rsync
+apt install -y joe net-tools cryptsetup-initramfs rsync
 echo -n $LUKS_KEY | cryptsetup -q luksFormat --type luks2 /dev/sdb3 -d -
 echo -n $LUKS_KEY | cryptsetup luksOpen /dev/sdb3 secure -d -
 
