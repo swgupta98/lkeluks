@@ -22,6 +22,17 @@ DaemonSet will :
 * One node at a time drain, convert to LUKS, reboot, uncordon, and then wipe original in the clear disk.
 * Nodes are then labeled with luks=enabled allowing you to schedule work only on workers that have been secured.
 
+luks-setup.sh script will perform operations in following manner:
+* This script is a bash script that can be used to convert an existing Linode Kubernetes Engine (LKE) base Debian install into an encrypted root filesystem on `/dev/sdb`.
+
+* The script first sets some environment variables, including the KUBECONFIG, PATH, and LUKS_KEY variables. It then checks that `/dev/sdb` is a `raw` disk and is not already being used for an encrypted filesystem.
+
+* The script waits for all other nodes to leave drain status before moving the current node into maintenance mode and shutting down running pods. It then creates a disk layout for 2GB `/boot` and the remainder for the root filesystem. The script then upgrades the system and installs required packages, including `joe`, `net-tools`, `cryptsetup-initramfs`, and `rsync`.
+
+* The script then formats `/dev/sdb2` and `/dev/sdb3` as `ext4` filesystems, and formats `/dev/sdb3` as a LUKS2 encrypted volume with the LUKS key specified in `/boot/keyfile`. It mounts `/dev/mapper/secure` on `/mnt` and syncs the contents of the root filesystem to the encrypted volume using rsync.
+
+* The script then chroots into `/mnt` and updates `/etc/fstab` and `/etc/crypttab` to mount /dev/mapper/secure on / and to use the LUKS key specified in /boot/keyfile. It updates the grub configuration and installs the grub bootloader to /dev/sdb. Finally, it installs the Linode CLI, changes the configuration profile to direct disk boot, and reboots the system.
+
 To determine which nodes have been secured :
 
 ```
